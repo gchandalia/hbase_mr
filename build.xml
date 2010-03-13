@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="hbase_mr" default="all" basedir=".">
+  <description>
+    Hbase TableFormat utilities for MapReduce.
+  </description>
+
+  <property name="src.dir" value="${basedir}/src"/>
+  <property name="build.dir" value="${basedir}/build"/>
+  <property name="docs.dir" value="${basedir}/docs"/>
+  <property name="lib.dir" value="${basedir}/lib"/>
+
+  <!-- application jar -->
+  <property name="app.jar" value="${basedir}/hbase-mr.jar"/>
+  <!-- classes to be included in the jar -->
+  <property name="class.files" value="com/adknowledge/hbase/**"/>
+
+  <path id="build.classpath">
+    <pathelement location="${lib.dir}/commons-logging-1.1.1.jar"/>
+    <pathelement location="${hadoop.jar}"/>
+    <pathelement location="${hbase.jar}"/>
+    <pathelement location="${build.dir}"/>
+  </path>
+
+  <target name="clean"
+          description="clean build and jars (docs are not deleted)">
+    <delete dir="${build.dir}"/>
+    <delete file="${app.jar}"/>
+  </target>
+
+  <target name="compile" description="compile java code base">
+    <fail unless="hadoop.jar" message="hadoop.jar not defined, see Readme"/>
+    <fail unless="hbase.jar" message="hbase.jar not defined, see Readme"/>
+    <mkdir dir="${build.dir}"/>
+    <javac classpathref="build.classpath" srcdir="${src.dir}"
+           destdir="${build.dir}" debug="true" deprecation="on"/>
+  </target>
+
+  <target name="prepare.app"
+          description="prepare application jar (w/o third party jars)"
+          depends="compile">
+    <jar destfile="${app.jar}" basedir="${build.dir}"
+         includes="${class.files}"/>
+  </target>
+
+  <target name="generate.javadocs" description="generate javadocs">
+    <delete dir="${docs.dir}"/>
+    <javadoc packagenames="com.adknowledge.*" classpathref="build.classpath"
+      sourcepath="${src.dir}" destdir="${docs.dir}" package="true"
+      defaultexcludes="yes" author="true" version="true" use="true"
+      windowtitle="Hbase TableFormat utilities for MapReduce">
+      <!-- links to external (third party) library docs -->
+      <link href="http://java.sun.com/javase/6/docs/api/"/>
+      <link href="http://hadoop.apache.org/core/docs/r0.20.1/api/"/>
+      <link href="http://hadoop.apache.org/hbase/docs/r0.20.2/api/"/>
+      <link href="http://commons.apache.org/logging/commons-logging-1.1.1/apidocs/"/>
+    </javadoc>
+  </target>
+
+  <target name="all" description="clean and build java classes, jars, docs">
+    <antcall target="clean"/>
+    <antcall target="compile"/>
+    <antcall target="prepare.app"/>
+    <antcall target="generate.javadocs"/>
+  </target>
+</project>
